@@ -77,8 +77,15 @@ export default function ErrorEdit({ errorId }: ErrorEditProps) {
     },
   });
 
-  const handleSave = () => {
-    if (!status) {
+  const handleSave = (saveType: string = "저장") => {
+    let finalStatus = status;
+    
+    // Set status based on save type
+    if (saveType === "보류") {
+      finalStatus = "보류";
+    } else if (saveType === "임시저장") {
+      finalStatus = "처리중";
+    } else if (!status) {
       toast({
         title: "상태 선택 필요",
         description: "오류 상태를 선택해주세요.",
@@ -87,7 +94,7 @@ export default function ErrorEdit({ errorId }: ErrorEditProps) {
       return;
     }
 
-    updateErrorMutation.mutate({ status, processingNote });
+    updateErrorMutation.mutate({ status: finalStatus, processingNote });
   };
 
   const handleBack = () => {
@@ -220,10 +227,32 @@ export default function ErrorEdit({ errorId }: ErrorEditProps) {
               <Badge className={getPriorityColor(error.priority)}>
                 {error.priority}
               </Badge>
-              <Button onClick={handleSave} disabled={updateErrorMutation.isPending} data-testid="button-save">
-                <Save className="w-4 h-4 mr-2" />
-                {updateErrorMutation.isPending ? '저장 중...' : '저장'}
-              </Button>
+              <div className="flex space-x-2">
+                <Button 
+                  onClick={() => handleSave("보류")} 
+                  disabled={updateErrorMutation.isPending}
+                  variant="outline" 
+                  data-testid="button-hold"
+                >
+                  보류
+                </Button>
+                <Button 
+                  onClick={() => handleSave("임시저장")} 
+                  disabled={updateErrorMutation.isPending}
+                  variant="outline" 
+                  data-testid="button-temp-save"
+                >
+                  임시저장
+                </Button>
+                <Button 
+                  onClick={() => handleSave("저장")} 
+                  disabled={updateErrorMutation.isPending}
+                  data-testid="button-save"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {updateErrorMutation.isPending ? '저장 중...' : '저장'}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -327,7 +356,7 @@ export default function ErrorEdit({ errorId }: ErrorEditProps) {
               <CardHeader>
                 <CardTitle>처리 내용</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <Textarea
                   placeholder="오류 처리 내용을 입력하세요..."
                   value={processingNote}
@@ -335,6 +364,34 @@ export default function ErrorEdit({ errorId }: ErrorEditProps) {
                   className="min-h-[120px]"
                   data-testid="textarea-processing-note"
                 />
+                
+                {/* Save Actions */}
+                <div className="flex justify-end space-x-3 pt-4 border-t">
+                  <Button 
+                    onClick={() => handleSave("보류")} 
+                    disabled={updateErrorMutation.isPending}
+                    variant="outline" 
+                    data-testid="button-hold-bottom"
+                  >
+                    보류
+                  </Button>
+                  <Button 
+                    onClick={() => handleSave("임시저장")} 
+                    disabled={updateErrorMutation.isPending}
+                    variant="outline" 
+                    data-testid="button-temp-save-bottom"
+                  >
+                    임시저장
+                  </Button>
+                  <Button 
+                    onClick={() => handleSave("저장")} 
+                    disabled={updateErrorMutation.isPending}
+                    data-testid="button-save-bottom"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {updateErrorMutation.isPending ? '저장 중...' : '저장'}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
