@@ -3,6 +3,7 @@ import { Bug, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { User } from "@shared/schema";
+import { Link } from "wouter";
 
 interface NavigationProps {
   activeSection?: 'report' | 'dashboard';
@@ -40,13 +41,14 @@ export default function Navigation({ activeSection = 'report', onSectionChange =
                 </h1>
               </div>
               <nav className="hidden md:ml-8 md:flex md:space-x-8">
-                <button
-                  className={getNavItemClass('report')}
-                  onClick={() => onSectionChange('report')}
-                  data-testid="nav-error-report"
-                >
-                  오류 신고
-                </button>
+                <Link href="/error-submit">
+                  <button
+                    className={getNavItemClass('report')}
+                    data-testid="nav-error-report"
+                  >
+                    오류 신고
+                  </button>
+                </Link>
                 <button
                   className={getNavItemClass('dashboard')}
                   onClick={() => onSectionChange('dashboard')}
@@ -82,14 +84,15 @@ export default function Navigation({ activeSection = 'report', onSectionChange =
       {isMobile && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2">
           <div className="flex justify-around">
-            <button
-              className={getMobileNavClass('report')}
-              onClick={() => onSectionChange('report')}
-              data-testid="mobile-nav-error-report"
-            >
-              <Bug className="text-lg" />
-              <span className="text-xs mt-1">오류 신고</span>
-            </button>
+            <Link href="/error-submit">
+              <button
+                className={getMobileNavClass('report')}
+                data-testid="mobile-nav-error-report"
+              >
+                <Bug className="text-lg" />
+                <span className="text-xs mt-1">오류 신고</span>
+              </button>
+            </Link>
             <button
               className={getMobileNavClass('dashboard')}
               onClick={() => onSectionChange('dashboard')}
