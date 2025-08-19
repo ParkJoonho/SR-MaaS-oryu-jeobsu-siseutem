@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Edit, Trash2, Download, Search } from "lucide-react";
+import { Eye, Edit, Trash2, Download, Search, Paperclip } from "lucide-react";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import type { Error, ErrorListResponse } from "@shared/schema";
 
@@ -212,6 +212,9 @@ export default function ErrorTable() {
                   상태
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  첨부파일
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   신고일
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -222,7 +225,7 @@ export default function ErrorTable() {
             <tbody className="bg-white divide-y divide-gray-200">
               {errors.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                     <div className="flex flex-col items-center">
                       <p className="text-lg font-medium">오류가 없습니다</p>
                       <p className="text-sm">검색 조건을 변경하거나 새로운 오류를 신고해보세요.</p>
@@ -261,6 +264,35 @@ export default function ErrorTable() {
                           <SelectItem value="보류">보류</SelectItem>
                         </SelectContent>
                       </Select>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {error.attachments && error.attachments.length > 0 ? (
+                        <div className="flex items-center space-x-2">
+                          <Paperclip className="w-4 h-4 text-gray-400" />
+                          <div className="flex flex-col">
+                            <span className="text-xs text-gray-600">
+                              {error.attachments.length}개 파일
+                            </span>
+                            <div className="space-y-1">
+                              {error.attachments.map((filename, index) => (
+                                <a
+                                  key={index}
+                                  href={filename.startsWith('/uploads/') ? filename : `/uploads/${filename}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-blue-600 hover:text-blue-800 hover:underline block truncate max-w-32"
+                                  title={filename.split('/').pop() || filename}
+                                  data-testid={`link-attachment-${error.id}-${index}`}
+                                >
+                                  {filename.split('/').pop() || filename}
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {error.createdAt ? new Date(error.createdAt).toLocaleDateString('ko-KR') : '-'}
