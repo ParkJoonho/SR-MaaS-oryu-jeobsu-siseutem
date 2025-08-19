@@ -165,54 +165,59 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getWeeklyStats(): Promise<Array<{ week: string; errors: number; resolved: number }>> {
-    // 최근 7주간의 실제 데이터를 조회합니다
+    // 간단한 접근방식으로 변경: 실제 데이터를 주차별로 그룹화
     const now = new Date();
     const sevenWeeksAgo = new Date(now.getTime() - 7 * 7 * 24 * 60 * 60 * 1000);
     
-    const errorStats = await db
+    // 모든 오류를 조회하여 JavaScript에서 처리
+    const allErrors = await db
       .select({
-        week: sql<string>`TO_CHAR(DATE_TRUNC('week', ${errors.createdAt}), 'MM월 DD일')`,
-        errors: count(),
+        id: errors.id,
+        createdAt: errors.createdAt,
+        updatedAt: errors.updatedAt,
+        status: errors.status
       })
       .from(errors)
       .where(gte(errors.createdAt, sevenWeeksAgo))
-      .groupBy(sql`DATE_TRUNC('week', ${errors.createdAt})`)
-      .orderBy(sql`DATE_TRUNC('week', ${errors.createdAt})`);
+      .orderBy(desc(errors.createdAt));
 
-    const resolvedStats = await db
-      .select({
-        week: sql<string>`TO_CHAR(DATE_TRUNC('week', ${errors.updatedAt}), 'MM월 DD일')`,
-        resolved: count(),
-      })
-      .from(errors)
-      .where(
-        and(
-          gte(errors.updatedAt, sevenWeeksAgo),
-          eq(errors.status, "완료")
-        )
-      )
-      .groupBy(sql`DATE_TRUNC('week', ${errors.updatedAt})`)
-      .orderBy(sql`DATE_TRUNC('week', ${errors.updatedAt})`);
-
-    // 주차별로 병합
+    // 주차별 데이터 계산
     const weekMap = new Map<string, { errors: number; resolved: number }>();
-    
-    errorStats.forEach(stat => {
-      weekMap.set(stat.week, { errors: stat.errors, resolved: 0 });
-    });
 
-    resolvedStats.forEach(stat => {
-      const existing = weekMap.get(stat.week) || { errors: 0, resolved: 0 };
-      weekMap.set(stat.week, { ...existing, resolved: stat.resolved });
-    });
-
-    // 최근 7주간 빈 주차도 포함하여 데이터 구성
-    const result: Array<{ week: string; errors: number; resolved: number }> = [];
-    
+    // 최근 7주 데이터 초기화
     for (let i = 6; i >= 0; i--) {
       const weekStart = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000);
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1); // 월요일로 설정
-      const weekLabel = `${weekStart.getMonth() + 1}월 ${weekStart.getDate()}일`;
+      const monday = new Date(weekStart);
+      monday.setDate(monday.getDate() - monday.getDay() + 1);
+      const weekLabel = `${monday.getMonth() + 1}월 ${monday.getDate()}일`;
+      weekMap.set(weekLabel, { errors: 0, resolved: 0 });
+    }
+
+    // 오류 데이터 처리
+    allErrors.forEach(error => {
+      if (error.createdAt) {
+        const errorDate = new Date(error.createdAt);
+        const monday = new Date(errorDate);
+        monday.setDate(monday.getDate() - monday.getDay() + 1);
+        const weekLabel = `${monday.getMonth() + 1}월 ${monday.getDate()}일`;
+        
+        const weekStats = weekMap.get(weekLabel);
+        if (weekStats) {
+          weekStats.errors++;
+          if (error.status === '완료') {
+            weekStats.resolved++;
+          }
+        }
+      }
+    });
+
+    // 결과 배열로 변환
+    const result: Array<{ week: string; errors: number; resolved: number }> = [];
+    for (let i = 6; i >= 0; i--) {
+      const weekStart = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000);
+      const monday = new Date(weekStart);
+      monday.setDate(monday.getDate() - monday.getDay() + 1);
+      const weekLabel = `${monday.getMonth() + 1}월 ${monday.getDate()}일`;
       
       const stats = weekMap.get(weekLabel) || { errors: 0, resolved: 0 };
       result.push({
