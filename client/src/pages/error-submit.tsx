@@ -210,13 +210,11 @@ export default function ErrorSubmitPage() {
         }
       }
       
-      // 시스템이 기본값(역무지원)일 때만 시스템 자동 분석
-      if (form.getValues("system") === "역무지원") {
-        try {
-          analyzeSystemMutation.mutate(value);
-        } catch (error) {
-          console.error("System analysis error:", error);
-        }
+      // 내용이 10자 이상이면 항상 시스템 자동 분석 실행
+      try {
+        analyzeSystemMutation.mutate(value);
+      } catch (error) {
+        console.error("System analysis error:", error);
       }
     }
   };
