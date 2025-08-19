@@ -132,6 +132,9 @@ export default function ErrorTable() {
   };
 
   const handleTitleClick = (error: Error) => {
+    console.log('Selected error:', error);
+    console.log('System value:', error.system);
+    console.log('Formatted system:', formatSystemName(error.system));
     setSelectedError(error);
     setIsDialogOpen(true);
   };
@@ -448,7 +451,7 @@ export default function ErrorTable() {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700">시스템</label>
-                    <p className="text-sm text-gray-900">{formatSystemName(selectedError.system)}</p>
+                    <p className="text-sm text-gray-900">{selectedError.system ? formatSystemName(selectedError.system) : '-'}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700">상태</label>
