@@ -79,6 +79,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analyze system category using Gemini AI
+  app.post("/api/errors/analyze-system", async (req, res) => {
+    try {
+      const { content } = req.body;
+      
+      if (!content || content.length < 5) {
+        return res.status(400).json({ 
+          message: "Content must be at least 5 characters long" 
+        });
+      }
+
+      const { analyzeSystemCategory } = await import("./gemini");
+      const system = await analyzeSystemCategory(content);
+      
+      res.json({ system });
+    } catch (error) {
+      console.error("Error analyzing system category:", error);
+      res.status(500).json({ 
+        message: "Failed to analyze system category" 
+      });
+    }
+  });
+
   // Error management routes
   app.post('/api/errors', isAuthenticated, upload.array('attachments', 5), async (req: any, res) => {
     try {

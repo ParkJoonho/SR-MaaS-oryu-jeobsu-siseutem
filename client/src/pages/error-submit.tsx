@@ -100,6 +100,25 @@ export default function ErrorSubmitPage() {
     },
   });
 
+  // 시스템 자동 분석 뮤테이션
+  const analyzeSystemMutation = useMutation({
+    mutationFn: async (content: string) => {
+      const response = await apiRequest('/api/errors/analyze-system', 'POST', { content });
+      return response;
+    },
+    onSuccess: (data: any) => {
+      form.setValue("system", data.system);
+      toast({
+        title: "시스템 분석 완료",
+        description: `${data.system} 시스템으로 자동 분류되었습니다.`,
+      });
+    },
+    onError: (error) => {
+      console.error("System analysis error:", error);
+      // 시스템 분석 실패 시에는 사용자에게 알리지 않고 조용히 처리
+    },
+  });
+
   const submitMutation = useMutation({
     mutationFn: async (data: FormData) => {
       // FormData 객체 생성 (파일 업로드용)
@@ -174,19 +193,30 @@ export default function ErrorSubmitPage() {
     generateTitleMutation.mutate(content);
   };
 
-  // 내용 변경 시 자동으로 제목 생성하는 기능
+  // 내용 변경 시 자동으로 제목 생성 및 시스템 분석하는 기능
   const handleContentChange = (value: string) => {
     const previousLength = contentLength;
     setContentLength(value.length);
     form.setValue("content", value);
     
     // 이전에는 10자 미만이었지만 현재 10자 이상이 되었을 때만 자동 생성
-    // 그리고 제목이 비어있을 때만
-    if (previousLength < 10 && value.length >= 10 && !form.getValues("title")) {
-      try {
-        generateTitleMutation.mutate(value);
-      } catch (error) {
-        console.error("Title generation error:", error);
+    if (previousLength < 10 && value.length >= 10) {
+      // 제목이 비어있을 때만 제목 자동 생성
+      if (!form.getValues("title")) {
+        try {
+          generateTitleMutation.mutate(value);
+        } catch (error) {
+          console.error("Title generation error:", error);
+        }
+      }
+      
+      // 시스템이 기본값(역무지원)일 때만 시스템 자동 분석
+      if (form.getValues("system") === "역무지원") {
+        try {
+          analyzeSystemMutation.mutate(value);
+        } catch (error) {
+          console.error("System analysis error:", error);
+        }
       }
     }
   };
