@@ -107,7 +107,9 @@ export default function ErrorSubmitPage() {
       return response;
     },
     onSuccess: (data: any) => {
-      form.setValue("system", data.system);
+      // 강제로 리렌더링을 위해 setValue 호출 후 trigger
+      form.setValue("system", data.system, { shouldDirty: true });
+      form.trigger("system"); // 필드 재검증 및 UI 업데이트 트리거
       toast({
         title: "시스템 분석 완료",
         description: `${data.system} 시스템으로 자동 분류되었습니다.`,
@@ -335,7 +337,7 @@ export default function ErrorSubmitPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>시스템</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-system">
                               <SelectValue placeholder="시스템을 선택하세요" />
@@ -358,7 +360,7 @@ export default function ErrorSubmitPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>우선순위</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-priority">
                               <SelectValue placeholder="우선순위를 선택하세요" />
