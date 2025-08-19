@@ -19,13 +19,22 @@ export default function ErrorTable() {
   const queryClient = useQueryClient();
 
   const { data: errorData, isLoading } = useQuery<ErrorListResponse>({
-    queryKey: ['/api/errors', { search, status, page }],
+    queryKey: ['/api/errors', search, status, page],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      if (status && status !== '모든 상태') params.append('status', status);
+      params.append('page', page.toString());
+      params.append('limit', '20');
+      
+      return apiRequest(`/api/errors?${params.toString()}`);
+    },
     retry: false,
   });
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      await apiRequest("PATCH", `/api/errors/${id}`, { status });
+      await apiRequest(`/api/errors/${id}`, 'PATCH', { status });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/errors'] });
@@ -57,7 +66,7 @@ export default function ErrorTable() {
 
   const deleteErrorMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/errors/${id}`);
+      await apiRequest(`/api/errors/${id}`, 'DELETE');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/errors'] });

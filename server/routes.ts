@@ -159,6 +159,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/errors/:id', isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid error ID" });
+      }
+      
       const error = await storage.getError(id);
       
       if (!error) {
@@ -175,6 +180,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/errors/:id', isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid error ID" });
+      }
+      
       const updates = updateErrorSchema.parse(req.body);
       
       const updatedError = await storage.updateError(id, updates);
@@ -193,6 +203,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/errors/:id', isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid error ID" });
+      }
       const success = await storage.deleteError(id);
       
       if (!success) {
