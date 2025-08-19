@@ -1,6 +1,6 @@
 # Overview
 
-This is a Korean error management system built with a React frontend (Vite + TypeScript) and Express.js backend. The application provides error reporting and tracking capabilities with AI-powered title generation using OpenAI's API. Users can submit error reports with detailed information including browser and OS details, while administrators can manage and track error resolution progress through a comprehensive dashboard with charts and statistics.
+This is the SR-MaaS Integrated Information System Error Management System, built with a React frontend (Vite + TypeScript) and Express.js backend. The application provides error reporting and tracking capabilities with AI-powered title generation using Google Gemini API. Users can submit error reports with detailed information including browser and OS details, while administrators can manage and track error resolution progress through a comprehensive dashboard with charts and statistics.
 
 # User Preferences
 
@@ -50,7 +50,7 @@ Implements Replit's OpenID Connect authentication system with session-based auth
 - **Replit Authentication**: OpenID Connect integration using `openid-client` and `passport` strategies
 
 ## AI Integration
-- **OpenAI API**: GPT-4o model integration for automated error title generation based on error content analysis
+- **Google Gemini API**: Gemini-2.5-flash model integration for automated error title generation based on error content analysis
 
 ## UI Components & Styling
 - **Radix UI**: Comprehensive component library (`@radix-ui/*`) providing accessible, unstyled UI primitives

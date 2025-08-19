@@ -12,7 +12,7 @@ export default function Landing() {
             <div className="flex items-center">
               <h1 className="text-xl font-bold text-gray-900">
                 <Bug className="inline-block w-6 h-6 text-blue-600 mr-2" />
-                오류 관리 시스템
+                SR-MaaS 통합정보시스템 오류 관리 시스템
               </h1>
             </div>
             <Button onClick={() => window.location.href = "/api/login"} data-testid="button-login">

@@ -36,7 +36,7 @@ export default function Navigation({ activeSection, onSectionChange }: Navigatio
               <div className="flex-shrink-0">
                 <h1 className="text-xl font-bold text-gray-900">
                   <Bug className="inline-block w-6 h-6 text-blue-600 mr-2" />
-                  오류 관리 시스템
+                  SR-MaaS 통합정보시스템 오류 관리 시스템
                 </h1>
               </div>
               <nav className="hidden md:ml-8 md:flex md:space-x-8">
