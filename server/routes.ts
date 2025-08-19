@@ -56,6 +56,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate error title using Gemini AI
+  app.post("/api/errors/generate-title", async (req, res) => {
+    try {
+      const { content } = req.body;
+      
+      if (!content || content.length < 10) {
+        return res.status(400).json({ 
+          message: "Content must be at least 10 characters long" 
+        });
+      }
+
+      const { generateErrorTitle } = await import("./gemini");
+      const title = await generateErrorTitle(content);
+      
+      res.json({ title });
+    } catch (error) {
+      console.error("Error generating title:", error);
+      res.status(500).json({ 
+        message: "Failed to generate title" 
+      });
+    }
+  });
+
   // Error management routes
   app.post('/api/errors', isAuthenticated, upload.array('attachments', 5), async (req: any, res) => {
     try {
