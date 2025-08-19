@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Bug, BarChart3, Shield } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import logoImage from "@assets/CIBI_basic_1755647078820.png";
 
 export default function Home() {
   const [location, setLocation] = useLocation();
@@ -18,8 +19,12 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">
-                <Bug className="inline-block w-6 h-6 text-blue-600 mr-2" />
+              <h1 className="text-xl font-bold text-gray-900 flex items-center">
+                <img 
+                  src={logoImage} 
+                  alt="CIBI Logo" 
+                  className="w-8 h-8 mr-3 object-contain"
+                />
                 SR-MaaS 통합정보시스템 오류 관리 시스템
               </h1>
             </div>
