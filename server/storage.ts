@@ -8,7 +8,7 @@ import {
   type Error,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, like, count } from "drizzle-orm";
+import { eq, desc, and, or, like, count, sql, gte } from "drizzle-orm";
 
 export interface IStorage {
   // User operations - mandatory for Replit Auth
@@ -32,7 +32,7 @@ export interface IStorage {
     completed: number;
     onHold: number;
   }>;
-  getMonthlyStats(): Promise<Array<{ month: string; errors: number; resolved: number }>>;
+  getWeeklyStats(): Promise<Array<{ week: string; errors: number; resolved: number }>>;
   getCategoryStats(): Promise<Array<{ category: string; count: number }>>;
 }
 
@@ -164,17 +164,65 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async getMonthlyStats(): Promise<Array<{ month: string; errors: number; resolved: number }>> {
-    // This would need more complex SQL for real monthly aggregation
-    // For now, returning sample structure that matches the chart needs
-    return [
-      { month: "8월", errors: 12, resolved: 8 },
-      { month: "9월", errors: 19, resolved: 16 },
-      { month: "10월", errors: 23, resolved: 20 },
-      { month: "11월", errors: 15, resolved: 14 },
-      { month: "12월", errors: 28, resolved: 25 },
-      { month: "1월", errors: 23, resolved: 15 }
-    ];
+  async getWeeklyStats(): Promise<Array<{ week: string; errors: number; resolved: number }>> {
+    // 최근 7주간의 실제 데이터를 조회합니다
+    const now = new Date();
+    const sevenWeeksAgo = new Date(now.getTime() - 7 * 7 * 24 * 60 * 60 * 1000);
+    
+    const errorStats = await db
+      .select({
+        week: sql<string>`TO_CHAR(DATE_TRUNC('week', ${errors.createdAt}), 'MM월 DD일')`,
+        errors: count(),
+      })
+      .from(errors)
+      .where(gte(errors.createdAt, sevenWeeksAgo))
+      .groupBy(sql`DATE_TRUNC('week', ${errors.createdAt})`)
+      .orderBy(sql`DATE_TRUNC('week', ${errors.createdAt})`);
+
+    const resolvedStats = await db
+      .select({
+        week: sql<string>`TO_CHAR(DATE_TRUNC('week', ${errors.updatedAt}), 'MM월 DD일')`,
+        resolved: count(),
+      })
+      .from(errors)
+      .where(
+        and(
+          gte(errors.updatedAt, sevenWeeksAgo),
+          eq(errors.status, "완료")
+        )
+      )
+      .groupBy(sql`DATE_TRUNC('week', ${errors.updatedAt})`)
+      .orderBy(sql`DATE_TRUNC('week', ${errors.updatedAt})`);
+
+    // 주차별로 병합
+    const weekMap = new Map<string, { errors: number; resolved: number }>();
+    
+    errorStats.forEach(stat => {
+      weekMap.set(stat.week, { errors: stat.errors, resolved: 0 });
+    });
+
+    resolvedStats.forEach(stat => {
+      const existing = weekMap.get(stat.week) || { errors: 0, resolved: 0 };
+      weekMap.set(stat.week, { ...existing, resolved: stat.resolved });
+    });
+
+    // 최근 7주간 빈 주차도 포함하여 데이터 구성
+    const result: Array<{ week: string; errors: number; resolved: number }> = [];
+    
+    for (let i = 6; i >= 0; i--) {
+      const weekStart = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000);
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1); // 월요일로 설정
+      const weekLabel = `${weekStart.getMonth() + 1}월 ${weekStart.getDate()}일`;
+      
+      const stats = weekMap.get(weekLabel) || { errors: 0, resolved: 0 };
+      result.push({
+        week: weekLabel,
+        errors: stats.errors,
+        resolved: stats.resolved
+      });
+    }
+
+    return result;
   }
 
   async getCategoryStats(): Promise<Array<{ category: string; count: number }>> {

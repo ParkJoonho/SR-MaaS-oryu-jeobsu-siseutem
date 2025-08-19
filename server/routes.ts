@@ -231,13 +231,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/stats/monthly', isAuthenticated, async (req, res) => {
+  app.get('/api/stats/weekly', isAuthenticated, async (req, res) => {
     try {
-      const stats = await storage.getMonthlyStats();
+      const stats = await storage.getWeeklyStats();
       res.json(stats);
     } catch (error) {
-      console.error("Error fetching monthly stats:", error);
-      res.status(500).json({ message: "Failed to fetch monthly stats" });
+      console.error("Error fetching weekly stats:", error);
+      res.status(500).json({ message: "Failed to fetch weekly stats" });
     }
   });
 

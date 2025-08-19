@@ -18,7 +18,7 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js';
-import type { MonthlyStatsResponse, CategoryStatsResponse } from "@shared/schema";
+import type { WeeklyStatsResponse, CategoryStatsResponse } from "@shared/schema";
 
 ChartJS.register(
   CategoryScale,
@@ -32,27 +32,27 @@ ChartJS.register(
 );
 
 export default function AdminDashboard() {
-  const { data: monthlyStats } = useQuery<MonthlyStatsResponse[]>({
-    queryKey: ['/api/stats/monthly'],
+  const { data: weeklyStats } = useQuery<WeeklyStatsResponse[]>({
+    queryKey: ['/api/stats/weekly'],
   });
 
   const { data: categoryStats } = useQuery<CategoryStatsResponse[]>({
     queryKey: ['/api/stats/categories'],
   });
 
-  const monthlyChartData = monthlyStats ? {
-    labels: monthlyStats.map((stat) => stat.month),
+  const weeklyChartData = weeklyStats ? {
+    labels: weeklyStats.map((stat) => stat.week),
     datasets: [
       {
         label: '오류 접수',
-        data: monthlyStats.map((stat) => stat.errors),
+        data: weeklyStats.map((stat) => stat.errors),
         borderColor: 'rgb(59, 130, 246)',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         tension: 0.1
       },
       {
         label: '해결 완료',
-        data: monthlyStats.map((stat) => stat.resolved),
+        data: weeklyStats.map((stat) => stat.resolved),
         borderColor: 'rgb(16, 185, 129)',
         backgroundColor: 'rgba(16, 185, 129, 0.1)',
         tension: 0.1
@@ -119,16 +119,16 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>월별 오류 접수 현황</CardTitle>
+            <CardTitle>주간별 오류 접수 현황</CardTitle>
             <select className="text-sm border-gray-300 rounded-md" data-testid="select-time-range">
-              <option>최근 6개월</option>
-              <option>최근 1년</option>
+              <option>최근 7주</option>
+              <option>최근 12주</option>
             </select>
           </CardHeader>
           <CardContent>
             <div className="h-64">
-              {monthlyChartData && (
-                <Line data={monthlyChartData} options={chartOptions} />
+              {weeklyChartData && (
+                <Line data={weeklyChartData} options={chartOptions} />
               )}
             </div>
           </CardContent>

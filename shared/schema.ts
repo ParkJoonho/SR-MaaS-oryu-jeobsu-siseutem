@@ -84,8 +84,8 @@ export interface ErrorListResponse {
   total: number;
 }
 
-export interface MonthlyStatsResponse {
-  month: string;
+export interface WeeklyStatsResponse {
+  week: string;
   errors: number;
   resolved: number;
 }
