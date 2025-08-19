@@ -176,11 +176,13 @@ export default function ErrorSubmitPage() {
 
   // 내용 변경 시 자동으로 제목 생성하는 기능
   const handleContentChange = (value: string) => {
+    const previousLength = contentLength;
     setContentLength(value.length);
     form.setValue("content", value);
     
-    // 10자 이상일 때 자동으로 제목 생성 (제목이 비어있을 때만)
-    if (value.length >= 10 && !form.getValues("title")) {
+    // 이전에는 10자 미만이었지만 현재 10자 이상이 되었을 때만 자동 생성
+    // 그리고 제목이 비어있을 때만
+    if (previousLength < 10 && value.length >= 10 && !form.getValues("title")) {
       generateTitleMutation.mutate(value);
     }
   };
