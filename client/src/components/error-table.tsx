@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Edit, Trash2, Download, Search, Paperclip } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Eye, Edit, Trash2, Download, Search, Paperclip, X } from "lucide-react";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import type { Error, ErrorListResponse } from "@shared/schema";
 
@@ -15,6 +16,8 @@ export default function ErrorTable() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("모든 상태");
   const [page, setPage] = useState(1);
+  const [selectedError, setSelectedError] = useState<Error | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -128,6 +131,20 @@ export default function ErrorTable() {
     });
   };
 
+  const handleTitleClick = (error: Error) => {
+    setSelectedError(error);
+    setIsDialogOpen(true);
+  };
+
+  const formatSystemName = (system: string) => {
+    switch(system) {
+      case '역무지원': return '역무지원 시스템';
+      case '안전관리': return '안전관리 시스템';
+      case '시설물관리': return '시설물관리 시스템';
+      default: return system;
+    }
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -238,8 +255,14 @@ export default function ErrorTable() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       #{error.id}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {error.title}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={() => handleTitleClick(error)}
+                        className="text-blue-600 hover:text-blue-800 hover:underline text-left"
+                        data-testid={`button-title-${error.id}`}
+                      >
+                        {error.title}
+                      </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Badge className={getPriorityColor(error.priority)}>
@@ -397,6 +420,150 @@ export default function ErrorTable() {
           </div>
         )}
       </CardContent>
+
+      {/* Error Detail Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>오류 상세 정보</span>
+              <Badge className={getPriorityColor(selectedError?.priority || '')}>
+                {selectedError?.priority}
+              </Badge>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedError && (
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">오류 ID</label>
+                    <p className="text-sm text-gray-900">#{selectedError.id}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">제목</label>
+                    <p className="text-sm text-gray-900 font-medium">{selectedError.title}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">시스템</label>
+                    <p className="text-sm text-gray-900">{formatSystemName(selectedError.system)}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">상태</label>
+                    <Badge 
+                      className={
+                        selectedError.status === '완료' 
+                          ? 'bg-green-100 text-green-800' 
+                          : selectedError.status === '처리중' 
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : selectedError.status === '보류'
+                          ? 'bg-red-100 text-red-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }
+                    >
+                      {selectedError.status}
+                    </Badge>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">신고일</label>
+                    <p className="text-sm text-gray-900">
+                      {selectedError.createdAt 
+                        ? new Date(selectedError.createdAt).toLocaleString('ko-KR')
+                        : '-'
+                      }
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">수정일</label>
+                    <p className="text-sm text-gray-900">
+                      {selectedError.updatedAt 
+                        ? new Date(selectedError.updatedAt).toLocaleString('ko-KR')
+                        : '-'
+                      }
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">브라우저</label>
+                    <p className="text-sm text-gray-900">{selectedError.browser || '-'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">운영체제</label>
+                    <p className="text-sm text-gray-900">{selectedError.os || '-'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">오류 내용</label>
+                <div className="mt-2 p-4 bg-gray-50 rounded-lg border">
+                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedError.content}</p>
+                </div>
+              </div>
+
+              {/* Attachments */}
+              {selectedError.attachments && selectedError.attachments.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700 flex items-center">
+                    <Paperclip className="w-4 h-4 mr-2" />
+                    첨부파일 ({selectedError.attachments.length}개)
+                  </label>
+                  <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {selectedError.attachments.map((filename, index) => (
+                      <div key={index} className="border rounded-lg p-3 bg-white">
+                        <div className="flex items-center space-x-2">
+                          <Paperclip className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-gray-900 truncate" title={filename.split('/').pop() || filename}>
+                              {filename.split('/').pop() || filename}
+                            </p>
+                            <a
+                              href={filename.startsWith('/uploads/') ? filename : `/uploads/${filename}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                              data-testid={`dialog-attachment-${selectedError.id}-${index}`}
+                            >
+                              파일 열기
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-3 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                  data-testid="button-dialog-close"
+                >
+                  닫기
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    handleDelete(selectedError.id);
+                    setIsDialogOpen(false);
+                  }}
+                  data-testid={`button-dialog-delete-${selectedError.id}`}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  삭제
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
