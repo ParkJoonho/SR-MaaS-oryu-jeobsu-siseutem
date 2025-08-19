@@ -34,7 +34,7 @@ export default function ErrorSubmitPage() {
     defaultValues: {
       title: "",
       content: "",
-      system: "SR-MaaS",
+      system: "역무지원",
       priority: "보통",
       browser: navigator.userAgent,
       os: navigator.platform,
@@ -226,13 +226,18 @@ export default function ErrorSubmitPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>시스템</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            readOnly
-                            data-testid="input-system"
-                          />
-                        </FormControl>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-system">
+                              <SelectValue placeholder="시스템을 선택하세요" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="역무지원">역무지원</SelectItem>
+                            <SelectItem value="안전관리">안전관리</SelectItem>
+                            <SelectItem value="시설물관리">시설물관리</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
