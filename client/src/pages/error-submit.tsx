@@ -273,35 +273,14 @@ export default function ErrorSubmitPage() {
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        제목 <span className="text-blue-600">(오류 접수)</span>
-                      </FormLabel>
-                      <div className="flex space-x-2">
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="오류 제목을 입력하거나 오류 접수를 위해 내용을 먼저 작성하세요"
-                            data-testid="input-error-title"
-                          />
-                        </FormControl>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={handleGenerateTitle}
-                          disabled={generateTitleMutation.isPending || contentLength < 10}
-                          data-testid="button-generate-title"
-                        >
-                          {generateTitleMutation.isPending ? (
-                            <Loader2 className="w-4 h-4 animate-spin mr-1" />
-                          ) : (
-                            <Wand2 className="w-4 h-4 mr-1" />
-                          )}
-                          오류 접수
-                        </Button>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        내용을 10자 이상 입력하면 자동으로 제목을 생성할 수 있습니다.
-                      </p>
+                      <FormLabel>제목</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="오류 제목을 입력하세요"
+                          data-testid="input-error-title"
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
