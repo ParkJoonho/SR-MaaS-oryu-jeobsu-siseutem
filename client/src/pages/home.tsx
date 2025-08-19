@@ -1,21 +1,44 @@
-import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import Navigation from "@/components/navigation";
-import { Bug, BarChart3, FileText, Users, Clock, CheckCircle } from "lucide-react";
-import { Link } from "wouter";
+import { Bug, BarChart3, FileText, Users, Clock, CheckCircle, Shield } from "lucide-react";
+import { Link, useLocation } from "wouter";
 
 export default function Home() {
-  const { user } = useAuth();
+  const [location, setLocation] = useLocation();
+
+  // Admin 아이콘 클릭 시 관리자 대시보드로 이동
+  const handleAdminClick = () => {
+    setLocation("/admin-dashboard");
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation />
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <h1 className="text-xl font-bold text-gray-900">
+                <Bug className="inline-block w-6 h-6 text-blue-600 mr-2" />
+                SR-MaaS 통합정보시스템 오류 관리 시스템
+              </h1>
+            </div>
+            <button
+              onClick={handleAdminClick}
+              className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              data-testid="button-admin"
+              title="관리자 페이지"
+            >
+              <Shield className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
+        </div>
+      </header>
       
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            환영합니다, {(user as any)?.firstName || '사용자'}님
+            환영합니다!
           </h1>
           <p className="text-lg text-gray-600">
             SR-MaaS 통합정보시스템 오류 관리 시스템에서 효율적으로 오류를 관리하세요.

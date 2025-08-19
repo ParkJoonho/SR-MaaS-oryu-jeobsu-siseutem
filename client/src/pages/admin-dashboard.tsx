@@ -2,8 +2,11 @@ import { useEffect } from "react";
 import DashboardStats from "@/components/dashboard-stats";
 import ErrorTable from "@/components/error-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { Line, Doughnut } from "react-chartjs-2";
+import { Link } from "wouter";
+import { Bug, ArrowLeft, Shield } from "lucide-react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -87,12 +90,33 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      {/* Dashboard Stats */}
-      <DashboardStats />
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-4">
+              <Link href="/">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  홈으로
+                </Button>
+              </Link>
+              <div className="flex items-center">
+                <Shield className="w-6 h-6 text-blue-600 mr-2" />
+                <h1 className="text-xl font-bold text-gray-900">관리자 대시보드</h1>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+      
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* Dashboard Stats */}
+        <DashboardStats />
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>월별 오류 접수 현황</CardTitle>
@@ -124,8 +148,9 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Error Management Table */}
-      <ErrorTable />
+        {/* Error Management Table */}
+        <ErrorTable />
+      </div>
     </div>
   );
 }
