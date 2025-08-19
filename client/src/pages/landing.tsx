@@ -29,7 +29,7 @@ export default function Landing() {
             스마트한 오류 관리
           </h1>
           <p className="mt-6 text-lg leading-8 text-gray-600">
-            AI 자동 제목 생성과 체계적인 관리 시스템으로 
+            스마트한 오류 접수와 체계적인 관리 시스템으로 
             효율적인 오류 해결을 경험해보세요
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
@@ -44,7 +44,7 @@ export default function Landing() {
           <Card>
             <CardHeader>
               <Bug className="w-8 h-8 text-blue-600 mb-2" />
-              <CardTitle>AI 자동 제목 생성</CardTitle>
+              <CardTitle>스마트 오류 접수</CardTitle>
               <CardDescription>
                 오류 내용을 분석하여 적절한 제목을 자동으로 생성합니다
               </CardDescription>

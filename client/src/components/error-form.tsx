@@ -80,7 +80,7 @@ export default function ErrorForm() {
       form.setValue("title", data.title);
       toast({
         title: "제목 생성 완료",
-        description: "AI가 제목을 생성했습니다.",
+        description: "제목이 자동으로 생성되었습니다.",
       });
     },
     onError: (error) => {
@@ -97,7 +97,7 @@ export default function ErrorForm() {
       }
       toast({
         title: "제목 생성 실패",
-        description: "AI 제목 생성 중 오류가 발생했습니다.",
+        description: "제목 생성 중 오류가 발생했습니다.",
         variant: "destructive",
       });
     },
@@ -136,13 +136,13 @@ export default function ErrorForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  제목 <span className="text-blue-600">(AI 자동 생성 가능)</span>
+                  제목 <span className="text-blue-600">(오류 접수)</span>
                 </FormLabel>
                 <div className="flex space-x-2">
                   <FormControl>
                     <Input
                       {...field}
-                      placeholder="오류 제목을 입력하거나 AI가 생성하도록 내용을 먼저 작성하세요"
+                      placeholder="오류 제목을 입력하거나 오류 접수를 위해 내용을 먼저 작성하세요"
                       data-testid="input-error-title"
                     />
                   </FormControl>
@@ -157,11 +157,11 @@ export default function ErrorForm() {
                     ) : (
                       <Wand2 className="w-4 h-4 mr-1" />
                     )}
-                    AI 생성
+                    오류 접수
                   </Button>
                 </div>
                 <p className="text-xs text-gray-500">
-                  내용을 10자 이상 입력하면 AI가 자동으로 제목을 생성할 수 있습니다.
+                  내용을 10자 이상 입력하면 자동으로 제목을 생성할 수 있습니다.
                 </p>
                 <FormMessage />
               </FormItem>
@@ -190,7 +190,7 @@ export default function ErrorForm() {
               </FormControl>
               <div className="flex justify-between text-xs text-gray-500">
                 <span data-testid="text-content-length">{contentLength}자</span>
-                <span>최소 10자 이상 입력 시 AI 제목 생성 가능</span>
+                <span>최소 10자 이상 입력 시 제목 생성 가능</span>
               </div>
               <FormMessage />
             </FormItem>
