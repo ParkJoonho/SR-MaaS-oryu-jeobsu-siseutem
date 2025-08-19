@@ -29,6 +29,34 @@ export default function ErrorSubmitPage() {
   const { toast } = useToast();
   const [contentLength, setContentLength] = useState(0);
 
+  const getSystemInfo = () => {
+    const userAgent = navigator.userAgent;
+    const platform = navigator.platform;
+    
+    // 시스템 정보 추출
+    let systemName = "알 수 없음";
+    if (userAgent.includes("Windows NT 10.0")) systemName = "Windows 10/11";
+    else if (userAgent.includes("Windows NT 6.3")) systemName = "Windows 8.1";
+    else if (userAgent.includes("Windows NT 6.2")) systemName = "Windows 8";
+    else if (userAgent.includes("Windows NT 6.1")) systemName = "Windows 7";
+    else if (userAgent.includes("Mac OS X")) {
+      const macMatch = userAgent.match(/Mac OS X ([0-9_]+)/);
+      if (macMatch) {
+        const version = macMatch[1].replace(/_/g, '.');
+        systemName = `macOS ${version}`;
+      } else {
+        systemName = "macOS";
+      }
+    }
+    else if (userAgent.includes("Linux")) systemName = "Linux";
+    else if (userAgent.includes("Ubuntu")) systemName = "Ubuntu Linux";
+    else if (userAgent.includes("Android")) systemName = "Android";
+    else if (userAgent.includes("iPhone")) systemName = "iOS (iPhone)";
+    else if (userAgent.includes("iPad")) systemName = "iOS (iPad)";
+
+    return systemName;
+  };
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -313,7 +341,7 @@ export default function ErrorSubmitPage() {
                   )}
                 />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <FormField
                     control={form.control}
                     name="browser"
@@ -351,6 +379,18 @@ export default function ErrorSubmitPage() {
                       </FormItem>
                     )}
                   />
+
+                  <div>
+                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      시스템 정보
+                    </label>
+                    <Input
+                      value={getSystemInfo()}
+                      readOnly
+                      data-testid="input-system-info"
+                      className="mt-2"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex justify-center pt-6">
