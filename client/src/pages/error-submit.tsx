@@ -13,7 +13,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { insertErrorSchema } from "@shared/schema";
 import { z } from "zod";
-import { Wand2, Loader2, Bug, Send, ArrowLeft } from "lucide-react";
+import { Wand2, Loader2, Bug, Send, ArrowLeft, Upload, X, FileImage } from "lucide-react";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Link } from "wouter";
 
@@ -28,6 +28,7 @@ export default function ErrorSubmitPage() {
   const { isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const [contentLength, setContentLength] = useState(0);
+  const [attachments, setAttachments] = useState<File[]>([]);
 
   const getSystemInfo = () => {
     const userAgent = navigator.userAgent;
@@ -118,8 +119,31 @@ export default function ErrorSubmitPage() {
 
   const submitMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const response = await apiRequest("/api/errors", "POST", data);
-      return response;
+      // FormData 객체 생성 (파일 업로드용)
+      const formData = new FormData();
+      
+      // 기본 데이터 추가
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          formData.append(key, String(value));
+        }
+      });
+      
+      // 파일 첨부
+      attachments.forEach((file, index) => {
+        formData.append(`attachments`, file);
+      });
+      
+      const response = await fetch("/api/errors", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`${response.status}: ${response.statusText}`);
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -127,6 +151,7 @@ export default function ErrorSubmitPage() {
         description: "담당자가 확인 후 처리해드리겠습니다.",
       });
       form.reset();
+      setAttachments([]);
       setContentLength(0);
     },
     onError: (error) => {
@@ -169,6 +194,40 @@ export default function ErrorSubmitPage() {
   const handleContentChange = (value: string) => {
     setContentLength(value.length);
     form.setValue("content", value);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const validFiles = Array.from(files).filter(file => {
+        const isValidType = file.type.startsWith('image/');
+        const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB 제한
+        
+        if (!isValidType) {
+          toast({
+            title: "파일 형식 오류",
+            description: "이미지 파일만 업로드할 수 있습니다.",
+            variant: "destructive",
+          });
+        }
+        
+        if (!isValidSize) {
+          toast({
+            title: "파일 크기 오류",
+            description: "파일 크기는 10MB 이하로 제한됩니다.",
+            variant: "destructive",
+          });
+        }
+        
+        return isValidType && isValidSize;
+      });
+      
+      setAttachments(prev => [...prev, ...validFiles].slice(0, 5)); // 최대 5개 파일
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
   if (isLoading) {
@@ -340,6 +399,78 @@ export default function ErrorSubmitPage() {
                     </FormItem>
                   )}
                 />
+
+                {/* 이미지 첨부 섹션 */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium leading-none">
+                      오류 이미지 첨부
+                    </label>
+                    <span className="text-xs text-gray-500">
+                      최대 5개, 각각 10MB 이하
+                    </span>
+                  </div>
+                  
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      id="file-upload"
+                      data-testid="file-upload"
+                    />
+                    <label
+                      htmlFor="file-upload"
+                      className="cursor-pointer flex flex-col items-center space-y-2"
+                    >
+                      <Upload className="w-8 h-8 text-gray-400" />
+                      <span className="text-sm text-gray-600">
+                        클릭하여 이미지를 선택하거나 드래그하여 업로드
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        PNG, JPG, GIF 형식 지원
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* 첨부된 파일 목록 */}
+                  {attachments.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium">첨부된 파일 ({attachments.length}/5)</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {attachments.map((file, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-2 bg-gray-50 rounded-md"
+                            data-testid={`attachment-${index}`}
+                          >
+                            <div className="flex items-center space-x-2 flex-1 min-w-0">
+                              <FileImage className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                              <span className="text-sm text-gray-700 truncate">
+                                {file.name}
+                              </span>
+                              <span className="text-xs text-gray-500 flex-shrink-0">
+                                ({Math.round(file.size / 1024)}KB)
+                              </span>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeAttachment(index)}
+                              className="flex-shrink-0"
+                              data-testid={`remove-attachment-${index}`}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <FormField

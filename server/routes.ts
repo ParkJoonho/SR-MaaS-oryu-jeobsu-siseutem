@@ -4,8 +4,43 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertErrorSchema, updateErrorSchema } from "@shared/schema";
 import { generateErrorTitle } from "./gemini";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Create uploads directory if it doesn't exist
+  const uploadsDir = path.join(process.cwd(), 'uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+
+  // Multer configuration for file uploads
+  const storage_config = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, uploadsDir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  });
+
+  const upload = multer({ 
+    storage: storage_config,
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB limit
+      files: 5 // maximum 5 files
+    },
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(null, false);
+      }
+    }
+  });
+
   // Auth middleware
   await setupAuth(app);
 
@@ -22,12 +57,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Error management routes
-  app.post('/api/errors', isAuthenticated, async (req: any, res) => {
+  app.post('/api/errors', isAuthenticated, upload.array('attachments', 5), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const files = req.files as Express.Multer.File[];
+      
+      // Get file paths if files were uploaded
+      const attachments = files ? files.map(file => `/uploads/${file.filename}`) : [];
+      
       const errorData = insertErrorSchema.parse({
         ...req.body,
-        reporterId: userId
+        reporterId: userId,
+        attachments: attachments.length > 0 ? attachments : null
       });
       
       const newError = await storage.createError(errorData);
@@ -35,6 +76,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating error report:", error);
       res.status(400).json({ message: "Failed to create error report" });
+    }
+  });
+
+  // Serve uploaded files
+  app.get('/uploads/:filename', (req, res) => {
+    const filename = req.params.filename;
+    const filepath = path.join(uploadsDir, filename);
+    
+    if (fs.existsSync(filepath)) {
+      res.sendFile(filepath);
+    } else {
+      res.status(404).json({ message: 'File not found' });
     }
   });
 

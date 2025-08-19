@@ -43,6 +43,7 @@ export const errors = pgTable("errors", {
   status: varchar("status", { length: 50 }).notNull().default("접수됨"),
   browser: varchar("browser", { length: 255 }),
   os: varchar("os", { length: 255 }),
+  attachments: text("attachments").array(),
   reporterId: varchar("reporter_id").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
