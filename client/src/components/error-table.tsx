@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Eye, Edit, Trash2, Download, Search, Paperclip, X } from "lucide-react";
+import { Edit, Trash2, Download, Search, Paperclip, X } from "lucide-react";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import type { Error, ErrorListResponse } from "@shared/schema";
 
@@ -324,13 +324,6 @@ export default function ErrorTable() {
                       {error.createdAt ? new Date(error.createdAt).toLocaleDateString('ko-KR') : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        data-testid={`button-view-${error.id}`}
-                      >
-                        <Eye className="w-4 h-4 text-blue-600" />
-                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
