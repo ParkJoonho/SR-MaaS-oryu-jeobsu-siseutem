@@ -5,11 +5,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import type { User } from "@shared/schema";
 
 interface NavigationProps {
-  activeSection: 'report' | 'dashboard';
-  onSectionChange: (section: 'report' | 'dashboard') => void;
+  activeSection?: 'report' | 'dashboard';
+  onSectionChange?: (section: 'report' | 'dashboard') => void;
 }
 
-export default function Navigation({ activeSection, onSectionChange }: NavigationProps) {
+export default function Navigation({ activeSection = 'report', onSectionChange = () => {} }: NavigationProps = {}) {
   const { user } = useAuth();
   const typedUser = user as User | undefined;
   const isMobile = useIsMobile();

@@ -9,6 +9,7 @@ import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import ErrorReport from "@/pages/error-report";
 import AdminDashboard from "@/pages/admin-dashboard";
+import ErrorSubmit from "@/pages/error-submit";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -21,6 +22,7 @@ function Router() {
         <>
           <Route path="/" component={Home} />
           <Route path="/error-report" component={ErrorReport} />
+          <Route path="/error-submit" component={ErrorSubmit} />
           <Route path="/admin-dashboard" component={AdminDashboard} />
         </>
       )}
