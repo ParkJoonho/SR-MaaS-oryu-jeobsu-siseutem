@@ -1,0 +1,64 @@
+# Overview
+
+This is a Korean error management system built with a React frontend (Vite + TypeScript) and Express.js backend. The application provides error reporting and tracking capabilities with AI-powered title generation using OpenAI's API. Users can submit error reports with detailed information including browser and OS details, while administrators can manage and track error resolution progress through a comprehensive dashboard with charts and statistics.
+
+# User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+# System Architecture
+
+## Frontend Architecture
+The client uses a modern React stack with Vite as the build tool and TypeScript for type safety. The UI is built with shadcn/ui components based on Radix UI primitives and styled with Tailwind CSS. State management is handled through TanStack React Query for server state and React Hook Form for form management. The routing system uses Wouter for client-side navigation.
+
+**Key Design Decisions:**
+- **Component Library**: Chose shadcn/ui for consistent, accessible components with extensive Radix UI integration
+- **Styling**: Tailwind CSS with CSS variables for theming support and consistent design tokens
+- **State Management**: TanStack React Query eliminates the need for additional state management libraries by handling server state efficiently
+- **Form Handling**: React Hook Form with Zod validation provides type-safe form management with minimal re-renders
+
+## Backend Architecture
+The server implements a RESTful API using Express.js with TypeScript. Authentication is handled through Replit's OpenID Connect integration with session-based storage. The application follows a layered architecture with separate concerns for routing, data access, and business logic.
+
+**Key Design Decisions:**
+- **Database Layer**: Drizzle ORM provides type-safe database operations with PostgreSQL
+- **Authentication**: Replit OpenID Connect ensures secure user authentication within the Replit environment
+- **Session Management**: PostgreSQL-backed sessions provide persistent login state across server restarts
+- **API Design**: RESTful endpoints with consistent error handling and logging middleware
+
+## Database Design
+Uses PostgreSQL with Drizzle ORM for type-safe database operations. The schema includes user management tables required for Replit Auth integration and error tracking tables for the core functionality.
+
+**Table Structure:**
+- **users**: Stores user profile information from Replit Auth
+- **sessions**: Session storage required for authentication persistence
+- **errors**: Core error reporting data with status tracking and metadata
+
+## Authentication & Authorization
+Implements Replit's OpenID Connect authentication system with session-based authorization. The system requires users to be authenticated to access any functionality beyond the landing page.
+
+**Security Features:**
+- OpenID Connect integration with Replit's identity provider
+- Session-based authentication with PostgreSQL storage
+- Middleware-based route protection
+- Secure cookie configuration for production environments
+
+# External Dependencies
+
+## Core Infrastructure
+- **Neon Database**: Serverless PostgreSQL database with `@neondatabase/serverless` driver for connection pooling
+- **Replit Authentication**: OpenID Connect integration using `openid-client` and `passport` strategies
+
+## AI Integration
+- **OpenAI API**: GPT-4o model integration for automated error title generation based on error content analysis
+
+## UI Components & Styling
+- **Radix UI**: Comprehensive component library (`@radix-ui/*`) providing accessible, unstyled UI primitives
+- **Tailwind CSS**: Utility-first CSS framework with PostCSS processing
+- **Chart.js**: Data visualization library for dashboard analytics and error statistics
+
+## Development Tools
+- **Vite**: Frontend build tool with React plugin and development server
+- **Drizzle**: Type-safe ORM with migration support and PostgreSQL dialect
+- **React Hook Form**: Form state management with Zod schema validation
+- **TanStack React Query**: Server state management and caching solution

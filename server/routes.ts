@@ -1,0 +1,160 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
+import { insertErrorSchema, updateErrorSchema } from "@shared/schema";
+import { generateErrorTitle } from "./gemini";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Error management routes
+  app.post('/api/errors', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const errorData = insertErrorSchema.parse({
+        ...req.body,
+        reporterId: userId
+      });
+      
+      const newError = await storage.createError(errorData);
+      res.json(newError);
+    } catch (error) {
+      console.error("Error creating error report:", error);
+      res.status(400).json({ message: "Failed to create error report" });
+    }
+  });
+
+  app.get('/api/errors', isAuthenticated, async (req, res) => {
+    try {
+      const { search, status, page = "1", limit = "20" } = req.query;
+      const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
+      
+      const result = await storage.getErrors({
+        search: search as string,
+        status: status as string,
+        limit: parseInt(limit as string),
+        offset
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching errors:", error);
+      res.status(500).json({ message: "Failed to fetch errors" });
+    }
+  });
+
+  app.get('/api/errors/:id', isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const error = await storage.getError(id);
+      
+      if (!error) {
+        return res.status(404).json({ message: "Error not found" });
+      }
+      
+      res.json(error);
+    } catch (error) {
+      console.error("Error fetching error:", error);
+      res.status(500).json({ message: "Failed to fetch error" });
+    }
+  });
+
+  app.patch('/api/errors/:id', isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = updateErrorSchema.parse(req.body);
+      
+      const updatedError = await storage.updateError(id, updates);
+      
+      if (!updatedError) {
+        return res.status(404).json({ message: "Error not found" });
+      }
+      
+      res.json(updatedError);
+    } catch (error) {
+      console.error("Error updating error:", error);
+      res.status(400).json({ message: "Failed to update error" });
+    }
+  });
+
+  app.delete('/api/errors/:id', isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteError(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Error not found" });
+      }
+      
+      res.json({ message: "Error deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting error:", error);
+      res.status(500).json({ message: "Failed to delete error" });
+    }
+  });
+
+  // Statistics routes
+  app.get('/api/stats/errors', isAuthenticated, async (req, res) => {
+    try {
+      const stats = await storage.getErrorStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching error stats:", error);
+      res.status(500).json({ message: "Failed to fetch error stats" });
+    }
+  });
+
+  app.get('/api/stats/monthly', isAuthenticated, async (req, res) => {
+    try {
+      const stats = await storage.getMonthlyStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching monthly stats:", error);
+      res.status(500).json({ message: "Failed to fetch monthly stats" });
+    }
+  });
+
+  app.get('/api/stats/categories', isAuthenticated, async (req, res) => {
+    try {
+      const stats = await storage.getCategoryStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching category stats:", error);
+      res.status(500).json({ message: "Failed to fetch category stats" });
+    }
+  });
+
+  // AI title generation route
+  app.post('/api/ai/generate-title', isAuthenticated, async (req, res) => {
+    try {
+      const { content } = req.body;
+      
+      if (!content || content.length < 10) {
+        return res.status(400).json({ message: "Content must be at least 10 characters long" });
+      }
+      
+      const title = await generateErrorTitle(content);
+      res.json({ title });
+    } catch (error) {
+      console.error("Error generating title:", error);
+      res.status(500).json({ message: "Failed to generate title" });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
