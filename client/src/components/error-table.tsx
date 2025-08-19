@@ -334,6 +334,7 @@ export default function ErrorTable() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => window.location.href = `/error-edit/${error.id}`}
                         data-testid={`button-edit-${error.id}`}
                       >
                         <Edit className="w-4 h-4 text-green-600" />

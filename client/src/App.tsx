@@ -8,6 +8,7 @@ import Home from "@/pages/home";
 import ErrorReport from "@/pages/error-report";
 import AdminDashboard from "@/pages/admin-dashboard";
 import ErrorSubmit from "@/pages/error-submit";
+import ErrorEdit from "@/pages/error-edit";
 
 function Router() {
   return (
@@ -16,6 +17,9 @@ function Router() {
       <Route path="/error-report" component={ErrorReport} />
       <Route path="/error-submit" component={ErrorSubmit} />
       <Route path="/admin-dashboard" component={AdminDashboard} />
+      <Route path="/error-edit/:errorId">
+        {(params) => <ErrorEdit errorId={params.errorId} />}
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );

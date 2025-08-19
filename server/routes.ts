@@ -137,6 +137,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get single error by ID
+  app.get('/api/errors/:id', isAuthenticated, async (req, res) => {
+    try {
+      const errorId = parseInt(req.params.id);
+      if (isNaN(errorId)) {
+        return res.status(400).json({ message: "Invalid error ID" });
+      }
+
+      const error = await storage.getError(errorId);
+      if (!error) {
+        return res.status(404).json({ message: "Error not found" });
+      }
+
+      res.json(error);
+    } catch (error) {
+      console.error("Error fetching error:", error);
+      res.status(500).json({ message: "Failed to fetch error" });
+    }
+  });
+
   app.get('/api/errors', isAuthenticated, async (req, res) => {
     try {
       const { search, status, page = "1", limit = "20" } = req.query;
