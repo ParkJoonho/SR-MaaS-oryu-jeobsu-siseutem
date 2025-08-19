@@ -183,7 +183,11 @@ export default function ErrorSubmitPage() {
     // 이전에는 10자 미만이었지만 현재 10자 이상이 되었을 때만 자동 생성
     // 그리고 제목이 비어있을 때만
     if (previousLength < 10 && value.length >= 10 && !form.getValues("title")) {
-      generateTitleMutation.mutate(value);
+      try {
+        generateTitleMutation.mutate(value);
+      } catch (error) {
+        console.error("Title generation error:", error);
+      }
     }
   };
 
