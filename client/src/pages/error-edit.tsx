@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ArrowRight, ChevronLeft, Save, Paperclip, Calendar, User, Monitor, Smartphone } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronLeft, Save, Paperclip, Calendar, User, Monitor, Smartphone, Brain, Loader2 } from "lucide-react";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import type { Error } from "@shared/schema";
 
@@ -21,6 +21,8 @@ export default function ErrorEdit({ errorId }: ErrorEditProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [processingNote, setProcessingNote] = useState("");
   const [status, setStatus] = useState("");
+  const [imageAnalysis, setImageAnalysis] = useState<string>("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -119,12 +121,59 @@ export default function ErrorEdit({ errorId }: ErrorEditProps) {
   const nextImage = () => {
     if (error?.attachments && error.attachments.length > 0 && currentImageIndex < error.attachments.length - 1) {
       setCurrentImageIndex(currentImageIndex + 1);
+      setImageAnalysis(""); // Clear previous analysis when switching images
     }
   };
 
   const prevImage = () => {
     if (currentImageIndex > 0) {
       setCurrentImageIndex(currentImageIndex - 1);
+      setImageAnalysis(""); // Clear previous analysis when switching images
+    }
+  };
+
+  const handleAnalyzeImage = async () => {
+    if (!hasAttachments || attachments.length === 0) {
+      toast({
+        title: "분석 불가",
+        description: "분석할 이미지가 없습니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    try {
+      const currentImagePath = attachments[currentImageIndex];
+      const response = await apiRequest('/api/errors/analyze-image', 'POST', {
+        imagePath: currentImagePath
+      });
+      
+      setImageAnalysis(response.analysis);
+      toast({
+        title: "분석 완료",
+        description: "AI가 이미지를 성공적으로 분석했습니다.",
+      });
+    } catch (error) {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "인증 오류",
+          description: "로그인이 필요합니다. 다시 로그인하겠습니다...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      console.error('Error analyzing image:', error);
+      toast({
+        title: "분석 실패",
+        description: "이미지 분석 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -353,7 +402,10 @@ export default function ErrorEdit({ errorId }: ErrorEditProps) {
                         {attachments.map((filename, index) => (
                           <button
                             key={index}
-                            onClick={() => setCurrentImageIndex(index)}
+                            onClick={() => {
+                              setCurrentImageIndex(index);
+                              setImageAnalysis(""); // Clear analysis when switching via thumbnail
+                            }}
                             className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${
                               index === currentImageIndex ? 'border-blue-500' : 'border-gray-200'
                             }`}
@@ -375,18 +427,52 @@ export default function ErrorEdit({ errorId }: ErrorEditProps) {
                         <span className="font-medium">파일명:</span>{' '}
                         {attachments[currentImageIndex].split('/').pop()}
                       </p>
-                      <a
-                        href={attachments[currentImageIndex].startsWith('/uploads/') 
-                          ? attachments[currentImageIndex] 
-                          : `/uploads/${attachments[currentImageIndex]}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 hover:underline"
-                        data-testid={`link-download-${currentImageIndex}`}
-                      >
-                        원본 파일 다운로드
-                      </a>
+                      <div className="flex items-center justify-between">
+                        <a
+                          href={attachments[currentImageIndex].startsWith('/uploads/') 
+                            ? attachments[currentImageIndex] 
+                            : `/uploads/${attachments[currentImageIndex]}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 hover:underline"
+                          data-testid={`link-download-${currentImageIndex}`}
+                        >
+                          원본 파일 다운로드
+                        </a>
+                        <Button
+                          onClick={handleAnalyzeImage}
+                          disabled={isAnalyzing}
+                          size="sm"
+                          className="ml-2"
+                          data-testid="button-analyze-image"
+                        >
+                          {isAnalyzing ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              분석 중...
+                            </>
+                          ) : (
+                            <>
+                              <Brain className="w-4 h-4 mr-2" />
+                              AI 분석
+                            </>
+                          )}
+                        </Button>
+                      </div>
                     </div>
+
+                    {/* AI Analysis Results */}
+                    {imageAnalysis && (
+                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center mb-3">
+                          <Brain className="w-5 h-5 text-blue-600 mr-2" />
+                          <h4 className="text-sm font-semibold text-blue-800">AI 오류 분석 결과</h4>
+                        </div>
+                        <div className="text-sm text-blue-900 whitespace-pre-wrap leading-relaxed">
+                          {imageAnalysis}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-12 text-gray-500">

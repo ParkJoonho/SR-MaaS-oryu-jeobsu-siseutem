@@ -102,6 +102,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analyze image using Gemini AI
+  app.post("/api/errors/analyze-image", isAuthenticated, async (req, res) => {
+    try {
+      const { imagePath } = req.body;
+      
+      if (!imagePath) {
+        return res.status(400).json({ 
+          message: "Image path is required" 
+        });
+      }
+
+      // Convert relative path to absolute path
+      const absolutePath = path.resolve(imagePath.startsWith('/uploads/') 
+        ? `.${imagePath}` 
+        : `./uploads/${imagePath}`);
+
+      // Check if file exists
+      if (!fs.existsSync(absolutePath)) {
+        return res.status(404).json({ 
+          message: "Image file not found" 
+        });
+      }
+
+      const { analyzeImageError } = await import("./gemini");
+      const analysis = await analyzeImageError(absolutePath);
+      
+      res.json({ analysis });
+    } catch (error) {
+      console.error("Error analyzing image:", error);
+      res.status(500).json({ 
+        message: "Failed to analyze image" 
+      });
+    }
+  });
+
   // Error management routes
   app.post('/api/errors', isAuthenticated, upload.array('attachments', 5), async (req: any, res) => {
     try {

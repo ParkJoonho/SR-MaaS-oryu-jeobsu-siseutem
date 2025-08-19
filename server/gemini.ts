@@ -39,6 +39,56 @@ Respond with JSON in this format: {'title': 'generated title'}`;
   }
 }
 
+export async function analyzeImageError(imagePath: string): Promise<string> {
+    try {
+        const fs = await import('fs');
+        const path = await import('path');
+        
+        const imageBytes = fs.readFileSync(imagePath);
+        const fileExtension = path.extname(imagePath).toLowerCase();
+        
+        // Determine MIME type based on file extension
+        let mimeType = "image/jpeg"; // default
+        if (fileExtension === '.png') {
+            mimeType = "image/png";
+        } else if (fileExtension === '.jpg' || fileExtension === '.jpeg') {
+            mimeType = "image/jpeg";
+        } else if (fileExtension === '.gif') {
+            mimeType = "image/gif";
+        } else if (fileExtension === '.webp') {
+            mimeType = "image/webp";
+        }
+
+        const contents = [
+            {
+                inlineData: {
+                    data: imageBytes.toString("base64"),
+                    mimeType,
+                },
+            },
+            `이 이미지를 분석하여 다음과 같은 내용을 한국어로 제공해주세요:
+
+1. 화면에서 발견되는 오류나 문제점
+2. 사용자 인터페이스의 이상 상태
+3. 시스템 오류 메시지나 경고
+4. 기능적 문제점 또는 버그의 징후
+5. 개선이 필요한 부분
+
+분석 결과를 구체적이고 실용적으로 작성해주세요. 만약 명확한 오류가 보이지 않는다면, 화면의 전반적인 상태와 잠재적 문제점을 설명해주세요.`,
+        ];
+
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-pro",
+            contents: contents,
+        });
+
+        return response.text || "이미지 분석 중 오류가 발생했습니다.";
+    } catch (error) {
+        console.error("Error analyzing image:", error);
+        throw new Error(`이미지 분석 실패: ${error}`);
+    }
+}
+
 export async function analyzeSystemCategory(content: string): Promise<string> {
   try {
     const systemPrompt = `당신은 철도 시스템 오류 분류 전문가입니다. 
