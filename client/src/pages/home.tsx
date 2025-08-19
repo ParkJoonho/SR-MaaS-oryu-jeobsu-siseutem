@@ -31,7 +31,7 @@ export default function Home() {
                     <Bug className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg">오류 접수</CardTitle>
+                    <CardTitle className="text-lg">스마트 오류 접수</CardTitle>
                     <CardDescription>새로운 오류를 신고합니다</CardDescription>
                   </div>
                 </div>
