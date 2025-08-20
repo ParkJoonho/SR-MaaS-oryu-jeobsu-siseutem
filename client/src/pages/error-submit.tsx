@@ -48,6 +48,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { insertErrorSchema } from "@shared/schema";
 import { z } from "zod";
 import { Wand2, Loader2, Bug, Send, ArrowLeft, Upload, X, FileImage, Mic } from "lucide-react";
+import logoImage from "@assets/CIBI_basic_1755647078820.png";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Link, useLocation } from "wouter";
 
@@ -486,7 +487,11 @@ export default function ErrorSubmitPage() {
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="mb-8 text-center">
           <div className="flex items-center justify-center mb-4">
-            <Bug className="w-12 h-12 text-blue-600 mr-4" />
+            <img 
+              src={logoImage} 
+              alt="SRT Logo" 
+              className="w-12 h-12 mr-4 object-contain"
+            />
             <h1 className="text-3xl font-bold text-gray-900">오류 접수</h1>
           </div>
           <p className="text-lg text-gray-600">
