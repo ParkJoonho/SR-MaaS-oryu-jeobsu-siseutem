@@ -13,7 +13,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { insertErrorSchema } from "@shared/schema";
 import { z } from "zod";
-import { Wand2, Loader2, Bug, Send, ArrowLeft, Upload, X, FileImage } from "lucide-react";
+import { Wand2, Loader2, Bug, Send, ArrowLeft, Upload, X, FileImage, Mic } from "lucide-react";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Link, useLocation } from "wouter";
 
@@ -424,13 +424,23 @@ export default function ErrorSubmitPage() {
                       <FormLabel>내용</FormLabel>
                       <FormControl>
                         <div className="space-y-2">
-                          <Textarea
-                            placeholder="오류 상황을 자세히 설명해주세요. (최소 10자)"
-                            className="min-h-[120px] resize-none"
-                            {...field}
-                            onChange={(e) => handleContentChange(e.target.value)}
-                            data-testid="textarea-content"
-                          />
+                          <div className="relative">
+                            <Textarea
+                              placeholder="오류 상황을 자세히 설명해주세요. (최소 10자)"
+                              className="min-h-[120px] resize-none pr-12"
+                              {...field}
+                              onChange={(e) => handleContentChange(e.target.value)}
+                              data-testid="textarea-content"
+                            />
+                            <button
+                              type="button"
+                              className="absolute top-3 right-3 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                              title="음성 입력 (준비 중)"
+                              data-testid="button-voice-input"
+                            >
+                              <Mic className="w-5 h-5" />
+                            </button>
+                          </div>
                           <div className="flex justify-between items-center text-sm text-gray-500">
                             <span>{contentLength} / 최소 10자</span>
                             {contentLength >= 10 && (
