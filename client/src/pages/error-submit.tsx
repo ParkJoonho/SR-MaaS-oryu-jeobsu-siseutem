@@ -118,6 +118,14 @@ export default function ErrorSubmitPage() {
         recognitionInstance.onend = () => {
           console.log('음성 인식 종료됨');
           setIsVoiceRecording(false);
+          
+          // 음성 인식 완료 후 시스템 분류 재시도
+          const currentContent = form.getValues('content');
+          if (currentContent && currentContent.length >= 10) {
+            setTimeout(() => {
+              analyzeSystemMutation.mutate(currentContent);
+            }, 500); // 0.5초 후 시스템 분석 재시도
+          }
         };
         
         recognitionRef.current = recognitionInstance;
@@ -147,6 +155,11 @@ export default function ErrorSubmitPage() {
     
     // 자동 제목 생성 및 시스템 분석 트리거
     if (newContent.length >= 10) {
+      // 음성 인식 완료 후 시스템 분석 강제 실행
+      setTimeout(() => {
+        analyzeSystemMutation.mutate(newContent);
+      }, 1000); // 1초 후 시스템 분석 실행
+      
       handleContentChange(newContent);
     }
   };
