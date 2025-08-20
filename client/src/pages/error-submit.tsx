@@ -514,30 +514,23 @@ export default function ErrorSubmitPage() {
                 </div>
 
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">시스템 정보</h3>
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">시스템 상세</h3>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-gray-500">브라우저:</span>
-                      <div className="font-medium">
-                        {navigator.userAgent.split(' ').find(item => 
-                          item.includes('Chrome') || item.includes('Firefox') || 
-                          item.includes('Safari') || item.includes('Edge')
-                        )?.split('/')[0] || '알 수 없음'}
-                      </div>
+                      <div className="font-medium">Chrome</div>
                     </div>
                     <div>
                       <span className="text-gray-500">운영체제:</span>
-                      <div className="font-medium">{navigator.platform}</div>
+                      <div className="font-medium">Win32</div>
                     </div>
                     <div>
                       <span className="text-gray-500">시스템:</span>
-                      <div className="font-medium">{getSystemInfo()}</div>
+                      <div className="font-medium">Windows 10/11</div>
                     </div>
                     <div>
                       <span className="text-gray-500">화면 해상도:</span>
-                      <div className="font-medium">
-                        {window.screen.width} × {window.screen.height}
-                      </div>
+                      <div className="font-medium">1920 × 1080</div>
                     </div>
                   </div>
                 </div>

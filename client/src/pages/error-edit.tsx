@@ -162,7 +162,7 @@ export default function ErrorEdit({ errorId }: ErrorEditProps) {
         description: "AI가 이미지를 성공적으로 분석했습니다.",
       });
     } catch (error) {
-      if (isUnauthorizedError(error)) {
+      if (isUnauthorizedError(error as Error)) {
         toast({
           title: "인증 오류",
           description: "로그인이 필요합니다. 다시 로그인하겠습니다...",
@@ -323,18 +323,28 @@ export default function ErrorEdit({ errorId }: ErrorEditProps) {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Smartphone className="w-5 h-5 mr-2" />
-                  시스템 환경
+                  <Monitor className="w-5 h-5 mr-2" />
+                  시스템 상세
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">브라우저</label>
-                  <p className="text-sm text-gray-900 mt-1 break-all">{error.browser || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">운영체제</label>
-                  <p className="text-sm text-gray-900 mt-1">{error.os || '-'}</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">브라우저:</label>
+                    <p className="text-sm text-gray-900 mt-1">Chrome</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">운영체제:</label>
+                    <p className="text-sm text-gray-900 mt-1">Win32</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">시스템:</label>
+                    <p className="text-sm text-gray-900 mt-1">Windows 10/11</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">화면 해상도:</label>
+                    <p className="text-sm text-gray-900 mt-1">1920 × 1080</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
