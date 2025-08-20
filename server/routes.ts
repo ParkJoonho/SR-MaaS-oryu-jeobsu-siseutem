@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupOfflineAuth, isOfflineAuthenticated } from "./offlineAuth";
 import { insertErrorSchema, updateErrorSchema } from "@shared/schema";
 import { generateTitle, analyzeSystemCategory, analyzeImage } from "./gemma";
 import multer from "multer";
@@ -41,8 +42,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Auth middleware
-  await setupAuth(app);
+  // Auth middleware - 환경에 따라 선택
+  const useOfflineAuth = process.env.OFFLINE_MODE === "true" || !process.env.REPLIT_DOMAINS;
+  
+  console.log("인증 모드:", useOfflineAuth ? "오프라인" : "온라인(Replit)");
+  
+  if (useOfflineAuth) {
+    console.log("오프라인 인증 모드로 실행합니다.");
+    await setupOfflineAuth(app);
+  } else {
+    console.log("Replit OpenID Connect 모드로 실행합니다.");
+    await setupAuth(app);
+  }
 
   // 개발 환경에서 테스트 데이터 시드
   if (process.env.NODE_ENV === 'development') {
@@ -144,13 +155,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 개발 환경에서는 인증 없이 접근 가능
-  const requireAuth = process.env.NODE_ENV === 'production' ? isAuthenticated : (req: any, res: any, next: any) => next();
+  // 인증 방식에 따라 미들웨어 선택
+  const authMiddleware = useOfflineAuth ? isOfflineAuthenticated : isAuthenticated;
+  
+  // 개발 환경에서는 인증 없이 접근 가능 (테스트 목적)
+  const requireAuth = process.env.NODE_ENV === 'production' ? authMiddleware : (req: any, res: any, next: any) => next();
 
   // Error management routes
   app.post('/api/errors', requireAuth, upload.array('attachments', 5), async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub || "anonymous-user";
+      // 오프라인 모드에서는 req.user.id, 온라인 모드에서는 req.user.claims.sub 사용
+      const userId = req.user?.id || req.user?.claims?.sub || "anonymous-user";
       const files = req.files as Express.Multer.File[];
       
       // Get file paths if files were uploaded

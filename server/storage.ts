@@ -11,8 +11,9 @@ import { db } from "./db";
 import { eq, desc, and, or, like, count, sql, gte } from "drizzle-orm";
 
 export interface IStorage {
-  // User operations - mandatory for Replit Auth
+  // User operations - supports both Replit Auth and offline auth
   getUser(id: string): Promise<User | undefined>;
+  getUserByUsername?(username: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   
   // Error operations
@@ -40,6 +41,11 @@ export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
     return user;
   }
 
