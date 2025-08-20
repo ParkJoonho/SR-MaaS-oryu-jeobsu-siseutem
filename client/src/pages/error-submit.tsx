@@ -444,7 +444,11 @@ export default function ErrorSubmitPage() {
                 </Button>
               </Link>
               <h1 className="text-xl font-bold text-gray-900">
-                <Bug className="inline-block w-6 h-6 text-blue-600 mr-2" />
+                <img 
+                  src={logoImage} 
+                  alt="SRT Logo" 
+                  className="inline-block w-6 h-6 mr-2 object-contain"
+                />
                 SR-MaaS 통합정보시스템 오류 관리 시스템
               </h1>
             </div>
@@ -475,7 +479,11 @@ export default function ErrorSubmitPage() {
               </Link>
               <Link href="/">
                 <h1 className="text-xl font-bold text-gray-900 cursor-pointer">
-                  <Bug className="inline-block w-6 h-6 text-blue-600 mr-2" />
+                  <img 
+                    src={logoImage} 
+                    alt="SRT Logo" 
+                    className="inline-block w-6 h-6 mr-2 object-contain"
+                  />
                   SR-MaaS 통합정보시스템 오류 관리 시스템
                 </h1>
               </Link>
