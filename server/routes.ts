@@ -44,6 +44,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
+  // 개발 환경에서 테스트 데이터 시드
+  if (process.env.NODE_ENV === 'development') {
+    const { seedTestData } = await import('./seed');
+    await seedTestData();
+  }
+
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
@@ -138,10 +144,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 개발 환경에서는 인증 없이 접근 가능
+  const requireAuth = process.env.NODE_ENV === 'production' ? isAuthenticated : (req: any, res: any, next: any) => next();
+
   // Error management routes
-  app.post('/api/errors', isAuthenticated, upload.array('attachments', 5), async (req: any, res) => {
+  app.post('/api/errors', requireAuth, upload.array('attachments', 5), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user?.claims?.sub || "anonymous-user";
       const files = req.files as Express.Multer.File[];
       
       // Get file paths if files were uploaded
@@ -173,27 +182,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get single error by ID
-  app.get('/api/errors/:id', isAuthenticated, async (req, res) => {
-    try {
-      const errorId = parseInt(req.params.id);
-      if (isNaN(errorId)) {
-        return res.status(400).json({ message: "Invalid error ID" });
-      }
-
-      const error = await storage.getError(errorId);
-      if (!error) {
-        return res.status(404).json({ message: "Error not found" });
-      }
-
-      res.json(error);
-    } catch (error) {
-      console.error("Error fetching error:", error);
-      res.status(500).json({ message: "Failed to fetch error" });
-    }
-  });
-
-  app.get('/api/errors', isAuthenticated, async (req, res) => {
+  app.get('/api/errors', requireAuth, async (req, res) => {
     try {
       const { search, status, page = "1", limit = "20" } = req.query;
       const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
@@ -212,7 +201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/errors/:id', isAuthenticated, async (req, res) => {
+  app.get('/api/errors/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       
@@ -233,7 +222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/errors/:id', isAuthenticated, async (req, res) => {
+  app.patch('/api/errors/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       
@@ -256,7 +245,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/errors/:id', isAuthenticated, async (req, res) => {
+  app.delete('/api/errors/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       
@@ -277,7 +266,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Statistics routes
-  app.get('/api/stats/errors', isAuthenticated, async (req, res) => {
+
+  app.get('/api/stats/errors', requireAuth, async (req, res) => {
     try {
       const stats = await storage.getErrorStats();
       res.json(stats);
@@ -287,7 +277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/stats/weekly', isAuthenticated, async (req, res) => {
+  app.get('/api/stats/weekly', requireAuth, async (req, res) => {
     try {
       const stats = await storage.getWeeklyStats();
       res.json(stats);
@@ -297,7 +287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/stats/categories', isAuthenticated, async (req, res) => {
+  app.get('/api/stats/categories', requireAuth, async (req, res) => {
     try {
       const stats = await storage.getCategoryStats();
       res.json(stats);
