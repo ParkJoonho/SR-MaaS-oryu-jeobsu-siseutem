@@ -42,6 +42,7 @@ export default function ErrorTable() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/errors'] });
       queryClient.invalidateQueries({ queryKey: ['/api/stats/errors'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/stats/categories'] });
       toast({
         title: "상태 업데이트",
         description: "오류 상태가 성공적으로 업데이트되었습니다.",
@@ -62,6 +63,38 @@ export default function ErrorTable() {
       toast({
         title: "오류",
         description: "상태 업데이트 중 문제가 발생했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateSystemMutation = useMutation({
+    mutationFn: async ({ id, system }: { id: number; system: string }) => {
+      await apiRequest(`/api/errors/${id}`, 'PATCH', { system });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/errors'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/stats/categories'] });
+      toast({
+        title: "시스템 업데이트",
+        description: "시스템 분류가 성공적으로 업데이트되었습니다.",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "인증 오류",
+          description: "로그인이 필요합니다. 다시 로그인하겠습니다...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "오류",
+        description: "시스템 업데이트 중 문제가 발생했습니다.",
         variant: "destructive",
       });
     },
@@ -116,6 +149,10 @@ export default function ErrorTable() {
 
   const handleStatusChange = (errorId: number, newStatus: string) => {
     updateStatusMutation.mutate({ id: errorId, status: newStatus });
+  };
+
+  const handleSystemChange = (errorId: number, newSystem: string) => {
+    updateSystemMutation.mutate({ id: errorId, system: newSystem });
   };
 
   const handleDelete = (errorId: number) => {
@@ -272,8 +309,20 @@ export default function ErrorTable() {
                         {error.priority}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {error.system}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Select
+                        value={error.system || ""}
+                        onValueChange={(value) => handleSystemChange(error.id, value)}
+                      >
+                        <SelectTrigger className="w-32" data-testid={`select-system-${error.id}`}>
+                          <SelectValue placeholder="시스템 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="역무지원">역무지원</SelectItem>
+                          <SelectItem value="안전관리">안전관리</SelectItem>
+                          <SelectItem value="시설물관리">시설물관리</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Select
