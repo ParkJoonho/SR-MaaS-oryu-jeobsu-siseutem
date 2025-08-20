@@ -20,6 +20,13 @@ This is the SR-MaaS Integrated Information System Error Management System, built
 - Added retry mechanisms for Gemini API overload situations
 - Improved AI-powered title generation and system categorization accuracy
 
+### AI Model Migration (August 20, 2025)
+- Migrated from Google Gemini API to Gemma-2-2B model via Hugging Face API
+- Implemented CPU-based local keyword analysis for faster processing
+- Added hybrid approach: local keyword classification + AI fallback
+- Enhanced offline capabilities with keyword-based title generation
+- Maintained compatibility with existing API endpoints
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.

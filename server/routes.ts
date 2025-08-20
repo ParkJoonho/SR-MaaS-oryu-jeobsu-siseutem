@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertErrorSchema, updateErrorSchema } from "@shared/schema";
-import { generateErrorTitle } from "./gemini";
+import { generateTitle, analyzeSystemCategory, analyzeImage } from "./gemma";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -67,8 +67,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { generateErrorTitle } = await import("./gemini");
-      const title = await generateErrorTitle(content);
+      const title = await generateTitle(content);
       
       res.json({ title });
     } catch (error) {
@@ -90,7 +89,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { analyzeSystemCategory } = await import("./gemini");
       const system = await analyzeSystemCategory(content);
       
       res.json({ system });
@@ -125,8 +123,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { analyzeImageError } = await import("./gemini");
-      const analysis = await analyzeImageError(absolutePath);
+      // Read image file and convert to base64
+      const imageBuffer = fs.readFileSync(absolutePath);
+      const base64Image = imageBuffer.toString('base64');
+      
+      const analysis = await analyzeImage(base64Image);
       
       res.json({ analysis });
     } catch (error) {
@@ -315,7 +316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Content must be at least 10 characters long" });
       }
       
-      const title = await generateErrorTitle(content);
+      const title = await generateTitle(content);
       res.json({ title });
     } catch (error) {
       console.error("Error generating title:", error);

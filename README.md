@@ -10,9 +10,10 @@ AI 기반 시스템 오류 접수 및 관리 대시보드로, 스마트 오류 �
 - 실시간 음성 인식 및 마이크 권한 관리
 
 ### 🤖 AI 기반 자동 분석
-- **Google Gemini AI** 연동으로 오류 제목 자동 생성
-- 오류 내용 분석을 통한 **시스템 자동 분류** (역무지원, 안전관리, 시설물관리)
-- 첨부 이미지 AI 분석을 통한 오류 진단 지원
+- **Gemma-2-2B 모델** (CPU 기반) 연동으로 오류 제목 자동 생성
+- 로컬 키워드 분석 + AI 결합을 통한 **시스템 자동 분류** (역무지원, 안전관리, 시설물관리)
+- 키워드 기반 빠른 분석 및 Hugging Face API fallback 지원
+- 텍스트 기반 오류 진단 및 분석 가이드 제공
 
 ### 📊 관리자 대시보드
 - 실시간 오류 통계 및 현황 모니터링
@@ -44,7 +45,7 @@ AI 기반 시스템 오류 접수 및 관리 대시보드로, 스마트 오류 �
 ### Backend
 - **Node.js** + **Express** + **TypeScript**
 - **PostgreSQL** + **Drizzle ORM** (데이터베이스)
-- **Google Gemini API** (AI 분석)
+- **Gemma-2-2B** via **Hugging Face API** (CPU 기반 AI 분석)
 - **Replit OpenID Connect** (인증)
 - **Multer** (파일 업로드)
 
@@ -57,9 +58,13 @@ AI 기반 시스템 오류 접수 및 관리 대시보드로, 스마트 오류 �
 ### 환경 변수 설정
 ```bash
 # .env 파일 생성
-GEMINI_API_KEY=your_gemini_api_key
+HUGGINGFACE_API_KEY=your_huggingface_api_key
 DATABASE_URL=your_database_url
 SESSION_SECRET=your_session_secret
+
+# Optional: Replit에서 자동 설정
+REPL_ID=auto_configured
+REPLIT_DOMAINS=auto_configured
 ```
 
 ### 의존성 설치
@@ -94,7 +99,7 @@ npm run build
 ├── server/                 # Express 백엔드
 │   ├── routes.ts           # API 라우트
 │   ├── db.ts              # 데이터베이스 연결
-│   ├── gemini.ts          # AI 분석 로직
+│   ├── gemma.ts           # CPU 기반 AI 분석 로직
 │   ├── storage.ts         # 데이터 저장 로직
 │   └── replitAuth.ts      # 인증 미들웨어
 ├── shared/                 # 공유 타입 및 스키마
