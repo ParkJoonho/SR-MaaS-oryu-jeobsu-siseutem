@@ -23,7 +23,7 @@ export default function Home() {
                 <img 
                   src={logoImage} 
                   alt="CIBI Logo" 
-                  className="w-5 h-5 mr-2 object-contain"
+                  className="w-8 h-8 mr-3 object-contain"
                 />
                 SR-MaaS 통합정보시스템 오류 관리 시스템
               </h1>
