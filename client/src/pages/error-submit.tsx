@@ -29,6 +29,7 @@ export default function ErrorSubmitPage() {
   const { toast } = useToast();
   const [contentLength, setContentLength] = useState(0);
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [isVoiceRecording, setIsVoiceRecording] = useState(false);
 
   const getSystemInfo = () => {
     const userAgent = navigator.userAgent;
@@ -255,6 +256,34 @@ export default function ErrorSubmitPage() {
     setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
+  // 음성 입력 기능
+  const handleVoiceInput = () => {
+    if (isVoiceRecording) {
+      // 녹음 중지
+      setIsVoiceRecording(false);
+      toast({
+        title: "음성 입력 중지",
+        description: "음성 입력이 중지되었습니다.",
+      });
+    } else {
+      // 녹음 시작
+      setIsVoiceRecording(true);
+      toast({
+        title: "음성 입력 시작",
+        description: "음성을 인식하고 있습니다. 다시 클릭하여 중지하세요.",
+      });
+      
+      // 5초 후 자동으로 중지 (데모용)
+      setTimeout(() => {
+        setIsVoiceRecording(false);
+        toast({
+          title: "음성 입력 완료",
+          description: "음성 입력이 자동으로 완료되었습니다.",
+        });
+      }, 5000);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -434,11 +463,16 @@ export default function ErrorSubmitPage() {
                             />
                             <button
                               type="button"
-                              className="absolute top-3 right-3 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                              title="음성 입력 (준비 중)"
+                              onClick={handleVoiceInput}
+                              className={`absolute top-3 right-3 p-2 rounded-lg transition-all duration-300 ${
+                                isVoiceRecording 
+                                  ? 'text-red-500 bg-red-50 hover:bg-red-100 animate-pulse' 
+                                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                              }`}
+                              title={isVoiceRecording ? "음성 입력 중지" : "음성 입력 시작"}
                               data-testid="button-voice-input"
                             >
-                              <Mic className="w-5 h-5" />
+                              <Mic className={`w-5 h-5 ${isVoiceRecording ? 'scale-110' : ''} transition-transform duration-300`} />
                             </button>
                           </div>
                           <div className="flex justify-between items-center text-sm text-gray-500">
