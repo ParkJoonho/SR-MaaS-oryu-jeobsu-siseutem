@@ -1,6 +1,24 @@
 # Overview
 
-This is the SR-MaaS Integrated Information System Error Management System, built with a React frontend (Vite + TypeScript) and Express.js backend. The application provides error reporting and tracking capabilities with intelligent title generation using Google Gemini API. Users can submit error reports with detailed information including browser and OS details, while administrators can manage and track error resolution progress through a comprehensive dashboard with charts and statistics.
+This is the SR-MaaS Integrated Information System Error Management System, built with a React frontend (Vite + TypeScript) and Express.js backend. The application provides comprehensive error reporting and tracking capabilities with AI-powered features including intelligent title generation, system classification, voice recognition input, and image analysis using Google Gemini API. Users can submit error reports through voice input or traditional text entry, while administrators can manage and track error resolution progress through a comprehensive dashboard with real-time charts and statistics.
+
+## Recent Changes (August 20, 2025)
+
+### Voice Recognition Integration
+- Implemented Google Web Speech API for Korean voice recognition (ko-KR)
+- Added voice-to-text conversion with microphone button UI
+- Integrated automatic system classification after voice recognition completion
+- Added error handling for microphone permissions and browser compatibility
+
+### UI/UX Improvements  
+- Replaced all bug icons with SRT logo for consistent branding
+- Enhanced voice recording UI with animated microphone states
+- Improved user feedback with toast notifications for voice recognition errors
+
+### AI Enhancement
+- Enhanced system classification to trigger automatically after voice input
+- Added retry mechanisms for Gemini API overload situations
+- Improved AI-powered title generation and system categorization accuracy
 
 # User Preferences
 
