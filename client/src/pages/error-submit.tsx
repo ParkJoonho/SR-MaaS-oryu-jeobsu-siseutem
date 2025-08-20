@@ -1,4 +1,38 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+
+// Web Speech API 타입 선언
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+  resultIndex: number;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+  message: string;
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  onstart: (event: Event) => void;
+  onresult: (event: SpeechRecognitionEvent) => void;
+  onerror: (event: SpeechRecognitionErrorEvent) => void;
+  onend: (event: Event) => void;
+}
+
+interface SpeechRecognitionStatic {
+  new (): SpeechRecognition;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: SpeechRecognitionStatic;
+    webkitSpeechRecognition: SpeechRecognitionStatic;
+  }
+}
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +64,92 @@ export default function ErrorSubmitPage() {
   const [contentLength, setContentLength] = useState(0);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [isVoiceRecording, setIsVoiceRecording] = useState(false);
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  // Web Speech API 초기화
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+      
+      if (SpeechRecognition) {
+        const recognitionInstance = new SpeechRecognition();
+        recognitionInstance.continuous = true;
+        recognitionInstance.interimResults = true;
+        recognitionInstance.lang = 'ko-KR'; // 한국어 설정
+        
+        recognitionInstance.onstart = () => {
+          console.log('음성 인식 시작됨');
+        };
+        
+        recognitionInstance.onresult = (event: SpeechRecognitionEvent) => {
+          let transcript = '';
+          
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+              transcript += event.results[i][0].transcript;
+            }
+          }
+          
+          if (transcript) {
+            // 음성 인식 결과를 처리하는 별도 함수 호출
+            handleSpeechResult(transcript);
+          }
+        };
+        
+        recognitionInstance.onerror = (event: SpeechRecognitionErrorEvent) => {
+          console.error('음성 인식 오류:', event.error);
+          setIsVoiceRecording(false);
+          
+          let errorMessage = '음성 인식 중 오류가 발생했습니다.';
+          if (event.error === 'not-allowed') {
+            errorMessage = '마이크 접근 권한이 필요합니다. 브라우저 설정을 확인해주세요.';
+          } else if (event.error === 'no-speech') {
+            errorMessage = '음성이 감지되지 않았습니다. 다시 시도해주세요.';
+          }
+          
+          toast({
+            title: "음성 인식 오류",
+            description: errorMessage,
+            variant: "destructive",
+          });
+        };
+        
+        recognitionInstance.onend = () => {
+          console.log('음성 인식 종료됨');
+          setIsVoiceRecording(false);
+        };
+        
+        recognitionRef.current = recognitionInstance;
+        setRecognition(recognitionInstance);
+      } else {
+        toast({
+          title: "음성 인식 지원 안됨",
+          description: "이 브라우저는 음성 인식을 지원하지 않습니다.",
+          variant: "destructive",
+        });
+      }
+    }
+    
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, [toast]);
+
+  // 음성 인식 결과 처리 함수
+  const handleSpeechResult = (transcript: string) => {
+    const currentContent = form.getValues('content');
+    const newContent = currentContent ? `${currentContent} ${transcript}` : transcript;
+    form.setValue('content', newContent);
+    setContentLength(newContent.length);
+    
+    // 자동 제목 생성 및 시스템 분석 트리거
+    if (newContent.length >= 10) {
+      handleContentChange(newContent);
+    }
+  };
 
   const getSystemInfo = () => {
     const userAgent = navigator.userAgent;
@@ -258,8 +378,18 @@ export default function ErrorSubmitPage() {
 
   // 음성 입력 기능
   const handleVoiceInput = () => {
+    if (!recognitionRef.current) {
+      toast({
+        title: "음성 인식 불가",
+        description: "음성 인식 기능을 사용할 수 없습니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (isVoiceRecording) {
       // 녹음 중지
+      recognitionRef.current.stop();
       setIsVoiceRecording(false);
       toast({
         title: "음성 입력 중지",
@@ -267,20 +397,22 @@ export default function ErrorSubmitPage() {
       });
     } else {
       // 녹음 시작
-      setIsVoiceRecording(true);
-      toast({
-        title: "음성 입력 시작",
-        description: "음성을 인식하고 있습니다. 다시 클릭하여 중지하세요.",
-      });
-      
-      // 5초 후 자동으로 중지 (데모용)
-      setTimeout(() => {
+      try {
+        recognitionRef.current.start();
+        setIsVoiceRecording(true);
+        toast({
+          title: "음성 입력 시작",
+          description: "음성을 인식하고 있습니다. 다시 클릭하여 중지하세요.",
+        });
+      } catch (error) {
+        console.error('음성 인식 시작 오류:', error);
         setIsVoiceRecording(false);
         toast({
-          title: "음성 입력 완료",
-          description: "음성 입력이 자동으로 완료되었습니다.",
+          title: "음성 인식 시작 실패",
+          description: "음성 인식을 시작할 수 없습니다. 마이크 권한을 확인해주세요.",
+          variant: "destructive",
         });
-      }, 5000);
+      }
     }
   };
 
@@ -467,9 +599,18 @@ export default function ErrorSubmitPage() {
                               className={`absolute top-3 right-3 p-2 rounded-lg transition-all duration-300 ${
                                 isVoiceRecording 
                                   ? 'text-red-500 bg-red-50 hover:bg-red-100 animate-pulse' 
-                                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                                  : recognition
+                                    ? 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                                    : 'text-gray-300 cursor-not-allowed'
                               }`}
-                              title={isVoiceRecording ? "음성 입력 중지" : "음성 입력 시작"}
+                              title={
+                                !recognition 
+                                  ? "음성 인식을 지원하지 않는 브라우저입니다" 
+                                  : isVoiceRecording 
+                                    ? "음성 입력 중지" 
+                                    : "음성 입력 시작 (Google Web Speech API)"
+                              }
+                              disabled={!recognition}
                               data-testid="button-voice-input"
                             >
                               <Mic className={`w-5 h-5 ${isVoiceRecording ? 'scale-110' : ''} transition-transform duration-300`} />
